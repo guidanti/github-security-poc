@@ -1,0 +1,20 @@
+[2024-11-10 02:47:38] This is codeql database create thefrontside_effection --source-root=~/Repositories/thefrontside/effection
+[2024-11-10 02:47:38] Log file was started late.
+[2024-11-10 02:47:38] [PROGRESS] database create> Initializing database at /Users/tarasmankovski/Repositories/guidanti/thefrontside_effection.
+[2024-11-10 02:47:38] Running plumbing command: codeql database init --extractor-options-verbosity=1 --qlconfig-file=/Users/tarasmankovski/Repositories/guidanti/qlconfig.yml --source-root=/Users/tarasmankovski/Repositories/guidanti/~/Repositories/thefrontside/effection --allow-missing-source-root=false --allow-already-existing -- /Users/tarasmankovski/Repositories/guidanti/thefrontside_effection
+[2024-11-10 02:47:38] Exception caught at top level: Invalid source root: /Users/tarasmankovski/Repositories/guidanti/~/Repositories/thefrontside/effection.
+                      com.semmle.cli2.database.InitCommand.executeSubcommand(InitCommand.java:168)
+                      com.semmle.cli2.picocli.SubcommandCommon.lambda$executeSubcommandWithMessages$5(SubcommandCommon.java:893)
+                      com.semmle.cli2.picocli.SubcommandCommon.withCompilationMessages(SubcommandCommon.java:443)
+                      com.semmle.cli2.picocli.SubcommandCommon.executeSubcommandWithMessages(SubcommandCommon.java:891)
+                      com.semmle.cli2.picocli.PlumbingRunner.run(PlumbingRunner.java:119)
+                      com.semmle.cli2.picocli.SubcommandCommon.runPlumbingInProcess(SubcommandCommon.java:200)
+                      com.semmle.cli2.database.CreateCommand.executeSubcommand(CreateCommand.java:113)
+                      com.semmle.cli2.picocli.SubcommandCommon.lambda$executeSubcommandWithMessages$5(SubcommandCommon.java:893)
+                      com.semmle.cli2.picocli.SubcommandCommon.withCompilationMessages(SubcommandCommon.java:443)
+                      com.semmle.cli2.picocli.SubcommandCommon.executeSubcommandWithMessages(SubcommandCommon.java:891)
+                      com.semmle.cli2.picocli.SubcommandCommon.toplevelMain(SubcommandCommon.java:775)
+                      com.semmle.cli2.picocli.SubcommandCommon.call(SubcommandCommon.java:756)
+                      com.semmle.cli2.picocli.SubcommandMaker.runMain(SubcommandMaker.java:238)
+                      com.semmle.cli2.picocli.SubcommandMaker.runMain(SubcommandMaker.java:259)
+                      com.semmle.cli2.CodeQL.main(CodeQL.java:115)

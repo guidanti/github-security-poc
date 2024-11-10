@@ -1,0 +1,7 @@
+---
+library: false
+warnOnImplicitThis: false
+name: github-security-poc
+version: 0.0.1
+dependencies:
+  codeql/javascript-queries: ^1.2.3
