@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "dev": "deno run --watch main.ts",
+    "generate:zod": "deno run --allow-read --allow-write --allow-env --allow-run tasks/generate-zod-schemas.ts"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+    "duckdb": "npm:duckdb-async@^1.1.1",
+    "zod": "npm:zod@3.23.8"
+  },
+  "nodeModulesDir": "auto"
+}
