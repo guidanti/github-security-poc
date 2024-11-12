@@ -1,45 +1,35 @@
-cube(`runs`, {
-  sql_table: `main.runs`,
+cube(`artifacts`, {
+  sql_table: `main.artifacts`,
   
   data_source: `default`,
 
   joins: {
-    commits: {
-      sql: `${CUBE}.commit_id = ${commits}.commit_id`,
+    runs: {
+      sql: `${CUBE}.run_id = ${runs}.run_id`,
       relationship: `many_to_one`
     }
   },
   
   dimensions: {
     id: {
-      sql: `run_id`,
+      sql: `artifact_id`,
       type: `number`,
       primary_key: true
     },
 
-    tool_name: {
-      sql: `tool_name`,
+    file_path: {
+      sql: `file_path`,
       type: `string`
     },
     
-    tool_version: {
-      sql: `tool_version`,
+    mime_type: {
+      sql: `mime_type`,
       type: `string`
     },
     
-    execution_successful: {
-      sql: `execution_successful`,
-      type: `boolean`
-    },
-    
-    original_uri_base_ids: {
-      sql: `original_uri_base_ids`,
+    hash: {
+      sql: `hash`,
       type: `string`
-    },
-    
-    invocation_time: {
-      sql: `invocation_time`,
-      type: `time`
     }
   },
   

@@ -1,45 +1,35 @@
-cube(`runs`, {
-  sql_table: `main.runs`,
+cube(`rules`, {
+  sql_table: `main.rules`,
   
   data_source: `default`,
 
   joins: {
-    commits: {
-      sql: `${CUBE}.commit_id = ${commits}.commit_id`,
+    runs: {
+      sql: `${CUBE}.run_id = ${runs}.run_id`,
       relationship: `many_to_one`
     }
   },
   
   dimensions: {
     id: {
-      sql: `run_id`,
+      sql: `rule_id`,
       type: `number`,
       primary_key: true
     },
 
-    tool_name: {
-      sql: `tool_name`,
+    description: {
+      sql: `description`,
       type: `string`
     },
     
-    tool_version: {
-      sql: `tool_version`,
+    help_uri: {
+      sql: `help_uri`,
       type: `string`
     },
     
-    execution_successful: {
-      sql: `execution_successful`,
-      type: `boolean`
-    },
-    
-    original_uri_base_ids: {
-      sql: `original_uri_base_ids`,
+    default_severity: {
+      sql: `default_severity`,
       type: `string`
-    },
-    
-    invocation_time: {
-      sql: `invocation_time`,
-      type: `time`
     }
   },
   
