@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const Sarif_2_1_0_Rtm_4 = z.object({
+export const Schema = z.object({
   "$schema": z.string().url().describe(
     "The URI of the JSON schema corresponding to the version.",
   ).optional(),
@@ -42114,4 +42114,4 @@ export const Sarif_2_1_0_Rtm_4 = z.object({
 }).strict().describe(
   "Static Analysis Results Format (SARIF) Version 2.1.0-rtm.4 JSON Schema: a standard format for the output of static analysis tools.",
 );
-export type Sarif_2_1_0_Rtm_4 = z.infer<typeof Sarif_2_1_0_Rtm_4>;
+export type SchemaType = z.infer<typeof Schema>;
