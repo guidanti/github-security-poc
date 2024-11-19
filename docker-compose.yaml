@@ -1,6 +1,6 @@
 services:
   cube:
-    image: cubejs/cube:latest
+    image: cubejs/cube:dev
     ports:
       - 4000:4000
       - 15432:15432
