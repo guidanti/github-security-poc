@@ -1,41 +1,13 @@
 {
-  "id": "98854fda-c8c0-4978-b84a-379b55784012",
+  "id": "a0668515-c1f3-45c6-867e-01d377dc91a2",
   "license_format": "1",
-  "signature": "be15414e39720b1342ccba45c5b2d5c453a6d5e4b8a58d65b82f95c50c07980c",
+  "signature": "cc41d885577d30c3fb78e7d3da3adb6ed29990bee1f1f14b7939e909be0d7781",
   "license_type": "trial",
-  "issue_date": "2024-11-19T00:40:32+00:00",
+  "issue_date": "2024-11-20T17:57:25+00:00",
   "expiry_date": "2024-11-28T00:51:51+00:00",
   "products": [
     {
-      "name": "localstack.stacks.preview",
-      "version": "*"
-    },
-    {
-      "name": "localstack.platform.plugin/*",
-      "version": "*"
-    },
-    {
-      "name": "localstack.pods",
-      "version": "*"
-    },
-    {
-      "name": "localstack-pro",
-      "version": "*.*.*"
-    },
-    {
-      "name": "localstack.aws.provider/*",
-      "version": "*"
-    },
-    {
-      "name": "localstack.extensions/*",
-      "version": "*"
-    },
-    {
-      "name": "localstack.container.runtime/*",
-      "version": "*"
-    },
-    {
-      "name": "localstack.pods.public",
+      "name": "localstack.stacks.premium",
       "version": "*"
     },
     {
@@ -43,18 +15,46 @@
       "version": "*"
     },
     {
+      "name": "localstack-pro",
+      "version": "*.*.*"
+    },
+    {
+      "name": "localstack.extensions/*",
+      "version": "*"
+    },
+    {
+      "name": "localstack.pods",
+      "version": "*"
+    },
+    {
+      "name": "localstack.aws.provider/*",
+      "version": "*"
+    },
+    {
       "name": "localstack.lambda.runtime_executor/*",
       "version": "*"
     },
     {
-      "name": "localstack.stacks.premium",
+      "name": "localstack.stacks.preview",
+      "version": "*"
+    },
+    {
+      "name": "localstack.pods.public",
+      "version": "*"
+    },
+    {
+      "name": "localstack.container.runtime/*",
+      "version": "*"
+    },
+    {
+      "name": "localstack.platform.plugin/*",
       "version": "*"
     }
   ],
   "license_status": "ACTIVE",
-  "license_secret": "TFMxLjA6PHbFzh9r1nXS6wxU5sjjtmZO18NggbnFIrkEUUAl669fbGT0jkBruDU9cVeqVzHX",
-  "last_activated": "2024-11-19T00:40:32.377033Z",
-  "reactivate_after": "2024-11-20T00:40:32+00:00",
+  "license_secret": "TFMxLjA6sihoYPlmlncIe+5A1hd8mpBmxGXfJm5lkelUsH3tB0RG1AiD04YqcxeVa4vRnLsw",
+  "last_activated": "2024-11-20T17:57:26.014256Z",
+  "reactivate_after": "2024-11-21T17:57:26+00:00",
   "offline_data": {
     "localstack_version": "3.8.2.dev105"
   }
