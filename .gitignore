@@ -1,2 +1,4 @@
 node_modules
 .cubestore
+.cache
+*.log
