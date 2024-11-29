@@ -41,6 +41,7 @@
     "npm:json-refs@3.0.15": "3.0.15",
     "npm:json-schema-to-typescript@15.0.3": "15.0.3",
     "npm:json-schema-to-zod@2.4.1": "2.4.1",
+    "npm:parse-github-url@1.0.3": "1.0.3",
     "npm:pretty-ms@9.2.0": "9.2.0",
     "npm:zod@3.23.8": "3.23.8"
   },
@@ -2822,6 +2823,9 @@
         "map-cache",
         "path-root"
       ]
+    },
+    "parse-github-url@1.0.3": {
+      "integrity": "sha512-tfalY5/4SqGaV/GIGzWyHnFjlpTPTNpENR9Ea2lLldSJ8EWXMsvacWucqY3m3I4YPtas15IxTLQVQ5NSYXPrww=="
     },
     "parse-json@5.2.0": {
       "integrity": "sha512-ayCKvm/phCGxOkYRSCM82iDwct8/EonSEgCSxWxD7ve6jHggsFl4fZVQBPRNgQoKiuV/odhFrGzQXZwbifC8Rg==",
