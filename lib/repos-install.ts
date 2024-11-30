@@ -3,12 +3,15 @@ import { exists } from "jsr:@std/fs@1.0.4";
 import { call } from "npm:effection@4.0.0-alpha.3";
 import semver from "npm:semver@7.6.3";
 
-export function* installDependencies(localRepositoryPaths: string[]) {
+export function* installDependencies(localRepositoryPaths: {
+  path: string,
+  name: string,
+}[]) {
   const logger = yield* useLogger();
   let noRoot = 0;
   let failedInstall = 0;
   
-  for (const repository of localRepositoryPaths) {
+  for (const { path: repository } of localRepositoryPaths) {
     const packageJson = new URL('package.json', `file://${repository}/`);
     if (yield* call(async () => await exists(packageJson))) {
       const lockfile = new URL('yarn.lock', `file://${repository}/`);

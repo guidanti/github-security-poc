@@ -35,8 +35,8 @@ export function* cloneRepositories(data: SearchRepositoriesQuery) {
           args: ["clone", href, clonePath],
         });
         yield* call(async () => await command.output());
-        clonePaths.push(clonePath);
       }
+      clonePaths.push({ path: clonePath, name });
     }
     return clonePaths;
   } else {
