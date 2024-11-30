@@ -5,6 +5,9 @@ import { initCacheContext } from "fetcher-lib/useCache.ts";
 import { initCostContext } from "fetcher-lib/useCost.ts"
 import { fetchRepositories } from "./fetchers/repositories.ts";
 import { initRetryWithBackoff } from "fetcher-lib/useRetryWithBackoff.ts";
+import { cloneRepositories } from "./repos-clone.ts";
+import { installDependencies } from "./repos-install.ts";
+import { scanRepositories } from "./repos-scan.ts";
 
 await main(function* () {
   yield* initCostContext();
@@ -23,6 +26,8 @@ await main(function* () {
 
   yield* initGithubContext();
 
-  yield* fetchRepositories();
-
+  const repositories = yield* fetchRepositories();
+  const localRepositoryPaths = yield* cloneRepositories(repositories);
+  yield* installDependencies(localRepositoryPaths);
+  yield* scanRepositories(localRepositoryPaths);
 });
