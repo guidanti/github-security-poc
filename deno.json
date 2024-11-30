@@ -2,7 +2,8 @@
   "tasks": {
     "dev": "deno run --watch main.ts",
     "generate:types": "deno run --allow-read --allow-write --allow-env --allow-run --allow-sys tasks/generate-types.ts",
-    "generate:graphql": "deno run --allow-read --allow-write --allow-env --allow-sys tasks/generate-graphql.ts"
+    "generate:graphql": "deno run --allow-read --allow-write --allow-env --allow-sys tasks/generate-graphql.ts",
+    "repo": "deno run -A lib/build-org.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",

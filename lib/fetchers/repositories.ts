@@ -1,4 +1,3 @@
-import { useLogger } from "fetcher-lib/useLogger.ts";
 import { graphql } from '../__generated__/gql.ts';
 import { useGithub } from '../github.ts';
 
@@ -26,11 +25,5 @@ const SearchRepositoriesQuery = graphql(/* GraphQL */ `
 
 export function* fetchRepositories() {
   const github = yield* useGithub();
-  const logger = yield* useLogger();
-
-  const data = yield* github(SearchRepositoriesQuery);
-
-  console.log(data);
-  
+  return yield* github(SearchRepositoriesQuery);
 }
-
