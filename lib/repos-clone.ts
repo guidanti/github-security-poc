@@ -1,4 +1,5 @@
 import type { SearchRepositoriesQuery } from "./__generated__/graphql.ts";
+import { exists } from "jsr:@std/fs@1.0.4";
 import { call } from "npm:effection@4.0.0-alpha.3";
 import gh from 'npm:parse-github-url@1.0.3';
 
@@ -23,13 +24,19 @@ export function* cloneRepositories(data: SearchRepositoriesQuery) {
     for (const repository of repositories) {
       const { href, name } = gh(repository.url);
       const clonePath = `${Deno.cwd()}/.cache/repositories/${name}`;
-      // 🚨 will the cache persist between runs? cloning to an existing directory will throw an error
-      const command = new Deno.Command("git", {
-        args: ["clone", href, clonePath],
-      });
-      // https://docs.deno.com/api/deno/~/Deno.Command
-      yield* call(async () => await command.output());
-      clonePaths.push(clonePath);
+      if (call(async () => await exists(clonePath))) {
+        const command = new Deno.Command("git", {
+          args: ["pull origin", repository.defaultBranchRef.name],
+          cwd: clonePath,
+        });
+        yield* call(async () => await command.output());
+      } else {
+        const command = new Deno.Command("git", {
+          args: ["clone", href, clonePath],
+        });
+        yield* call(async () => await command.output());
+        clonePaths.push(clonePath);
+      }
     }
     return clonePaths;
   } else {
