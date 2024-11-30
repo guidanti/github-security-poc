@@ -36,7 +36,11 @@ export function* cloneRepositories(data: SearchRepositoriesQuery) {
         });
         yield* call(async () => await command.output());
       }
-      clonePaths.push({ path: clonePath, name });
+      clonePaths.push({
+        path: clonePath,
+        name,
+        branch: repository.defaultBranchRef.name,
+      });
     }
     return clonePaths;
   } else {
