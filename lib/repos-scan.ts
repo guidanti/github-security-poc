@@ -44,6 +44,13 @@ export function* scanRepositories(localRepositoryPaths: {
 
 function* checkout(commit: string, path: string) {
   const logger = yield* useLogger();
+  const reset = new Deno.Command("git", {
+    args: [
+      "reset", "--hard"
+    ],
+    cwd: path,
+  });
+  yield* call(async () => await reset.output());
   const checkout = new Deno.Command("git", {
     args: [
       "checkout",
