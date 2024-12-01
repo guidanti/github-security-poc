@@ -1,6 +1,6 @@
 services:
   cube:
-    image: cubejs/cube:dev
+    image: tarasm/cube:duckdb113
     ports:
       - 4000:4000
       - 15432:15432
