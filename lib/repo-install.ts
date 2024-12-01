@@ -17,13 +17,13 @@ export function* installDependencies(path: string) {
         args: ["--version"],
         cwd: path,
       });
-      const { stdout: version } = yield* call(async () => await yarnVersion.output());
+      const { stdout: version } = yield* call(() => yarnVersion.output());
       const { major } = semver.parse(new TextDecoder().decode(version));
       
-      const flag = major > 1 ? "--immutable" : "--frozen-lockfile";
+      const args = major > 1 ? ["--immutable"] : ["--frozen-lockfile", "--ignore-engines"];
 
       const install = new Deno.Command("yarn", {
-        args: [flag],
+        args,
         cwd: path,
       });
 

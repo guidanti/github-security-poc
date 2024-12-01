@@ -55,7 +55,7 @@ export function* cloneRepositories(data: SearchRepositoriesQuery) {
         
         clonePaths.push({
           path: clonePath,
-          name,
+          name: repository.name,
           branch: defaultBranch,
         });
       } else {
