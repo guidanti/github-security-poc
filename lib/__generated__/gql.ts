@@ -15,13 +15,13 @@ import * as types from './graphql';
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 const documents = {
-    "\n  query SearchRepositories {\n    search(type: REPOSITORY, query: \"user:bcgov language:TypeScript\", first: 100) {\n      nodes {\n        ... on Repository {\n          nameWithOwner\n          url\n          defaultBranchRef {\n            name\n          }\n          languages(first: 10) {\n            nodes {\n              id\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n": types.SearchRepositoriesDocument,
+    "\n  query SearchRepositories {\n    search(type: REPOSITORY, query: \"user:bcgov language:TypeScript\", first: 100) {\n      nodes {\n        __typename\n        ... on Repository {\n          name\n          nameWithOwner\n          url\n          defaultBranchRef {\n            name\n          }\n          languages(first: 10) {\n            nodes {\n              id\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n": types.SearchRepositoriesDocument,
 };
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query SearchRepositories {\n    search(type: REPOSITORY, query: \"user:bcgov language:TypeScript\", first: 100) {\n      nodes {\n        ... on Repository {\n          nameWithOwner\n          url\n          defaultBranchRef {\n            name\n          }\n          languages(first: 10) {\n            nodes {\n              id\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n"): typeof import('./graphql').SearchRepositoriesDocument;
+export function graphql(source: "\n  query SearchRepositories {\n    search(type: REPOSITORY, query: \"user:bcgov language:TypeScript\", first: 100) {\n      nodes {\n        __typename\n        ... on Repository {\n          name\n          nameWithOwner\n          url\n          defaultBranchRef {\n            name\n          }\n          languages(first: 10) {\n            nodes {\n              id\n              name\n            }\n          }\n        }\n      }\n    }\n  }\n"): typeof import('./graphql').SearchRepositoriesDocument;
 
 
 export function graphql(source: string) {

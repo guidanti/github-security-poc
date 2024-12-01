@@ -7802,7 +7802,7 @@ export type WorkflowsParametersInput = {
 export type SearchRepositoriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SearchRepositoriesQuery = { __typename?: 'Query', search: { __typename?: 'SearchResultItemConnection', nodes?: Array<{ __typename?: 'App' } | { __typename?: 'Discussion' } | { __typename?: 'Issue' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'Organization' } | { __typename?: 'PullRequest' } | { __typename?: 'Repository', nameWithOwner: string, url: any, defaultBranchRef?: { __typename?: 'Ref', name: string } | null, languages?: { __typename?: 'LanguageConnection', nodes?: Array<{ __typename?: 'Language', id: string, name: string } | null> | null } | null } | { __typename?: 'User' } | null> | null } };
+export type SearchRepositoriesQuery = { __typename?: 'Query', search: { __typename?: 'SearchResultItemConnection', nodes?: Array<{ __typename: 'App' } | { __typename: 'Discussion' } | { __typename: 'Issue' } | { __typename: 'MarketplaceListing' } | { __typename: 'Organization' } | { __typename: 'PullRequest' } | { __typename: 'Repository', name: string, nameWithOwner: string, url: any, defaultBranchRef?: { __typename?: 'Ref', name: string } | null, languages?: { __typename?: 'LanguageConnection', nodes?: Array<{ __typename?: 'Language', id: string, name: string } | null> | null } | null } | { __typename: 'User' } | null> | null } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -7823,7 +7823,9 @@ export const SearchRepositoriesDocument = new TypedDocumentString(`
     query SearchRepositories {
   search(type: REPOSITORY, query: "user:bcgov language:TypeScript", first: 100) {
     nodes {
+      __typename
       ... on Repository {
+        name
         nameWithOwner
         url
         defaultBranchRef {

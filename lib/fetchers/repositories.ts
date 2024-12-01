@@ -5,7 +5,9 @@ const SearchRepositoriesQuery = graphql(/* GraphQL */ `
   query SearchRepositories {
     search(type: REPOSITORY, query: "user:bcgov language:TypeScript", first: 100) {
       nodes {
+        __typename
         ... on Repository {
+          name
           nameWithOwner
           url
           defaultBranchRef {

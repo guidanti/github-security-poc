@@ -26,6 +26,10 @@ await main(function* () {
   yield* initGithubContext();
 
   const repositories = yield* fetchRepositories();
+
+  console.log(`Found ${repositories.search.nodes?.length} repositories`);
+
   const localRepositoryPaths = yield* cloneRepositories(repositories);
+  
   yield* scanRepositories(localRepositoryPaths);
 });
