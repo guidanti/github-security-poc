@@ -16,7 +16,6 @@ export { type S3ClientConfig } from "npm:@aws-sdk/client-s3@3.701.0";
 
 const S3ClientContext = createContext<S3Client>("s3-client");
 
-
 function createS3Client(config: S3ClientConfig) {
   return resource<S3Client>(function* (provide) {
     let s3: S3Client | undefined;

@@ -1,33 +1,34 @@
 import type { SearchRepositoriesQuery } from "./__generated__/graphql.ts";
-import * as fs from "jsr:@std/fs@1.0.4";
-import { call, type Operation } from "npm:effection@4.0.0-alpha.3";
+import { type Operation } from "npm:effection@4.0.0-alpha.3";
 import { type Output, TinyProcess, x } from "./tinyexec.ts";
-import { join } from "node:path";
+import { useCache } from "fetcher-lib/useCache.ts";
+import { exists, remove } from "./fs.ts";
 
-function* exists(path: string | URL, options?: fs.ExistsOptions): Operation<boolean> {
-  return yield* call(() => fs.exists(path, options))
+export interface ClonedPath {
+  path: URL;
+  name: string;
+  nameWithOwner: string;
+  branch: string;
 }
 
-function* remove(path: string | URL, options?: Deno.RemoveOptions): Operation<void> {
-  return yield* call(() => Deno.remove(path, options))
-}
+export function* cloneRepositories(data: SearchRepositoriesQuery): Operation<ClonedPath[]> {
+  const clonePaths: ClonedPath[] = [];
+  const cache = yield* useCache();
 
-export function* cloneRepositories(data: SearchRepositoriesQuery) {
   if (data?.search?.nodes?.length) {
     const repositories = data?.search?.nodes;
-    const clonePaths = [];
     for (const repository of repositories) {
       if (repository?.__typename === "Repository") {
         const defaultBranch = repository.defaultBranchRef?.__typename === "Ref" ? repository.defaultBranchRef.name : "main";
-        const clonePath = `${Deno.cwd()}/.cache/repositories/${repository.name}`;
+        const clonePath = new URL(`./repositories/${repository.nameWithOwner}`, cache.location);
         
         let cmd: Operation<TinyProcess> | undefined;
         if (yield* exists(clonePath)) {
-          if (yield* exists(join(clonePath, '.git'))) {
+          if (yield* exists(new URL('./.git', `${clonePath}/`))) {
             console.log(`Reusing and pulling to ${clonePath} because it already exists`);
             cmd = x("git", ["pull origin", defaultBranch], {
               nodeOptions: {
-                cwd: clonePath,
+                cwd: clonePath.pathname,
               }
             });
           } else {
@@ -37,8 +38,8 @@ export function* cloneRepositories(data: SearchRepositoriesQuery) {
         }
 
         if (cmd === undefined) {
-          console.log(`Cloning ${clonePath}`);
-          cmd = x("git", ["clone", repository.url, clonePath]);
+          console.log(`Cloning ${repository.nameWithOwner}`);
+          cmd = x("git", ["clone", repository.url, clonePath.pathname]);
         }
 
         let exec: TinyProcess | undefined;
@@ -46,24 +47,26 @@ export function* cloneRepositories(data: SearchRepositoriesQuery) {
         try {
           exec = yield* cmd;
           output = yield* exec;
+          console.log(`Successfully downloaded ${repository.nameWithOwner} to ${clonePath.pathname}`)
         } catch {
           console.log(output?.stdout);
           console.error(`Command exited with ${output?.exitCode}: ${output?.stderr}`)
         } finally {
-          console.log(`Finished with ${repository.nameWithOwner}`)
+          clonePaths.push({
+            path: clonePath,
+            name: repository.name,
+            nameWithOwner: repository.nameWithOwner,
+            branch: defaultBranch,
+          });
         }
         
-        clonePaths.push({
-          path: clonePath,
-          name: repository.name,
-          branch: defaultBranch,
-        });
       } else {
         console.log(`Encountered ${repository?.__typename} instead of Repository`);
       }
     }
-    return clonePaths;
   } else {
     throw new Error(`There are no repositories in the query results`);
   }
+
+  return clonePaths;
 }

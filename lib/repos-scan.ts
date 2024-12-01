@@ -1,115 +1,172 @@
 import { useLogger } from "fetcher-lib/useLogger.ts";
-import { exists } from "jsr:@std/fs@1.0.4/exists";
-import { call } from "npm:effection@4.0.0-alpha.3";
-import fs from "node:fs";
-import { promisify } from "node:util";
+import { call, each } from "npm:effection@4.0.0-alpha.3";
 import { installDependencies } from "./repo-install.ts";
+import { ClonedPath } from "./repos-clone.ts";
+import { exists, mkdir } from "./fs.ts";
+import {  x } from "./tinyexec.ts";
+import { putObject } from "./s3.ts";
 
-export function* scanRepositories(localRepositoryPaths: {
-  path: string,
-  name: string,
-  branch: string,
-}[]) {
+type ClonedPathWithCommit = ClonedPath & {
+  commit: string;
+}
+
+export function* scanRepositories(localRepositoryPaths: ClonedPath[]) {
   const logger = yield* useLogger();
   yield* ensureCacheDirExists();
   yield* checkTrivyExists();
 
-  for (const [index, { path, name, branch }] of localRepositoryPaths.entries()) {
-    logger.info('Running trivy scans for', name, `${index+1}/${localRepositoryPaths.length}`);
-
-    const gitLog = new Deno.Command("git", {
-      args: ["--no-pager", "log", "--pretty=format:%h", "-n", "5"],
-      cwd: path,
-    });
-
-    const { stdout } = yield* call(async () => await gitLog.output());
-    const commits = new TextDecoder()
-      .decode(stdout)
-      .split("\n")
-      .filter(commit => commit.trim());
+  for (const [index, cloned] of localRepositoryPaths.entries()) {
+    logger.info(
+      `[${
+        index + 1
+      }/${localRepositoryPaths.length}] Running trivy scan for ${cloned.nameWithOwner}`,
+    );
     try {
+      logger.info('Getting top 5 commits');
+      const commits = yield* getCommits(cloned, 5);
+
+      let i = 1;
       for (const commit of commits) {
-        const reportExists = yield* call(async () => await exists(`${Deno.cwd()}/.cache/sarif/${name}-${commit}.sarif`));
-        if (!reportExists) {
-          yield* checkout(commit, path);
-          yield* installDependencies(path);
-          yield* scanAndOutput({ path, name, commit });
+        try {
+          logger.info(`[${i++}/${commits.length}] Scanning commit with SHA ${commit}`)
+          logger.info(` Git Checkout ${commit}`)
+          yield* checkout(commit, cloned.path);
+          logger.info(` Installing dependencies`)
+          yield* installDependencies(cloned.path);
+          logger.info(` Scanning with trivy`);
+          const output = yield* scan({ ...cloned, commit });
+          if (output.trim() === "") {
+            logger.info(` Scanner output is empty; Skipping S3 Upload`);
+          } else {
+            logger.info(` Uploading to S3`);
+            yield* uploadToS3({ ...cloned, commit }, output);
+          }
+          logger.info(` Successfully scanned ${commit}`)
+        } catch (e) {
+          logger.info(` Failed to complete ${commit}`);
+          logger.error(e);
         }
       }
-    } finally {
-      yield* checkout(branch, path);
+    } catch (e) {
+      console.info(`Failed to scan ${cloned.nameWithOwner}`);
+      console.error(e);
     }
+
   }
 }
 
-function* checkout(commit: string, path: string) {
+function* getCommits(cloned: ClonedPath, count: number) {
+  const gitLog = yield* yield* x("git", [
+    "--no-pager",
+    "log",
+    "--pretty=format:%h",
+    "-n",
+    `${count}`,
+  ], {
+    nodeOptions: {
+      cwd: cloned.path.pathname,
+    },
+  });
+
+  return gitLog.stdout.split("\n").filter((commit) => commit.trim())
+}
+
+function* checkout(commit: string, path: URL) {
   const logger = yield* useLogger();
-  const reset = new Deno.Command("git", {
-    args: [
-      "reset", "--hard"
-    ],
-    cwd: path,
+
+  const reset = yield* yield* x("git", [
+    "reset",
+    "--hard",
+  ], {
+    nodeOptions: {
+      cwd: path.pathname,
+    },
   });
-  yield* call(async () => await reset.output());
-  const checkout = new Deno.Command("git", {
-    args: [
-      "checkout",
-      commit,
-    ],
-    cwd: path,
+
+  if (reset.exitCode !== 0) {
+    logger.log(reset.stdout);
+    logger.error(reset.stderr);
+    throw new Error(`Git reset failed`)
+  }
+
+  const checkout = yield* yield* x("git", [
+    "checkout",
+    commit,
+  ], {
+    nodeOptions: {
+      cwd: path.pathname,
+    },
   });
-  const result = yield* call(async () => await checkout.output());
-  if (result.code !== 0) {
-    const stdout = new TextDecoder().decode(result.stdout);
-    const stderr = new TextDecoder().decode(result.stderr);
-    logger.error('Something went wrong while checking out a commit/branch:', stdout, stderr);
+
+  if (checkout.exitCode !== 0) {
+    logger.log(reset.stdout);
+    logger.error(reset.stderr);
+    throw new Error(`Git checkout failed`)
   }
 }
 
-function* scanAndOutput({
-  path, name, commit,
-}: {
-  path: string,
-  name: string,
-  commit: string,
-}) {
+function* scan(cloned: ClonedPathWithCommit) {
   const logger = yield* useLogger();
-  const scan = new Deno.Command("trivy", {
-    args: [
-      "fs",
-      "--scanners", "vuln,secret",
-      "--format", "sarif",
-      `--output`, `${path}/../../sarif/${name}-${commit}.sarif`,
-      path,
-    ],
-  });
-  yield* call(async () => {
-    const result = await scan.output();
-    if (result.code !== 0) {
-      logger.info(new TextDecoder().decode(result.stdout), new TextDecoder().decode(result.stderr))
-    }
-  });
+
+  const scanner = yield* x("trivy", [
+    "--quiet",
+    "fs",
+    "--scanners",
+    "vuln,secret",
+    "--format",
+    "sarif",
+    cloned.path.pathname,
+  ]);
+
+  const output = [];
+  for (const line of yield* each(scanner.lines)) {
+    output.push(line);
+    yield* each.next()
+  }
+
+  const process = yield* scanner;
+
+  if (process.exitCode !== 0) {
+    logger.error(process.stderr);
+    throw new Error(`Scan failed`);
+  }
+
+  return output.join("\n");
 }
 
 function* ensureCacheDirExists() {
   const resultsDirectory = `${Deno.cwd()}/.cache/sarif/`;
-  const resultsDirectoryExists = yield* call(async () => await exists(resultsDirectory));
+  const resultsDirectoryExists = yield* exists(resultsDirectory);
   if (!resultsDirectoryExists) {
-    yield* call(() => promisify(fs.mkdir)(resultsDirectory, { recursive: true }));
+    yield* mkdir(resultsDirectory, { recursive: true });
   }
 }
 
 function* checkTrivyExists() {
   const logger = yield* useLogger();
   const checkTrivyExists = new Deno.Command("trivy", {
-    args: ["--version"]
+    args: ["--version"],
   });
 
-  logger.info("Checking if trivy is installed")
+  logger.info("Checking if trivy is installed");
   try {
-    const trivyVersion = yield* call(async () => await checkTrivyExists.output());
-    logger.info("Found trivy:", new TextDecoder().decode(trivyVersion.stdout))
+    const trivyVersion = yield* call(() => checkTrivyExists.output());
+    logger.info("Found trivy:", new TextDecoder().decode(trivyVersion.stdout));
   } catch {
     throw new Error("Unable to find trivy");
   }
+}
+
+export function* uploadToS3(cloned: ClonedPathWithCommit, output: string) {
+  const logger = yield* useLogger();
+  
+  yield* putObject({
+    Body: output,
+    Key: `${cloned.nameWithOwner}/${cloned.commit}/trivy.json`,
+    Bucket: `security`,
+  });
+
+  logger.info(
+    `Successfully uploaded ${cloned.nameWithOwner}/${cloned.commit} to bucket`,
+  );
 }
