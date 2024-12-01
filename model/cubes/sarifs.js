@@ -7,7 +7,12 @@ cube(`sarifs`, {
         filename, 
         regexp_extract(filename, '^s3:\/\/[^\/]+\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)$', ['owner', 'name', 'sha']) as id 
       FROM 
-        read_json_auto('s3://security/*/*/*/*.json', hive_partitioning=true, filename=true) as files, 
+        read_json_auto(
+          's3://security/*/*/*/*.json', 
+          hive_partitioning=true, 
+          filename=true,
+          maximum_depth=4
+        ) as files, 
         json_each(files->'$.runs[*]')
     )
     SELECT
