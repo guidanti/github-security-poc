@@ -62,6 +62,7 @@ export function* scanRepositories(localRepositoryPaths: ClonedPath[]) {
     }
 
   }
+  return localRepositoryPaths;
 }
 
 function* getCommits(cloned: ClonedPath, count: number) {
@@ -167,8 +168,6 @@ function* checkTrivyExists() {
 }
 
 export function* uploadToS3(cloned: ClonedPathWithCommit, output: string) {
-  const logger = yield* useLogger();
-  
   yield* putObject({
     Body: output,
     Key: getKey(cloned),

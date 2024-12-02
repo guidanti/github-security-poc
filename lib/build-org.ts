@@ -9,6 +9,7 @@ import { initRetryWithBackoff } from "fetcher-lib/useRetryWithBackoff.ts";
 import { cloneRepositories } from "./repos-clone.ts";
 import { scanRepositories } from "./repos-scan.ts";
 import { initS3Client, S3ClientConfig } from "./s3.ts";
+import { generateEntities } from "./generate-entities.ts";
 
 await main(function* () {
   yield* initCostContext();
@@ -49,5 +50,7 @@ await main(function* () {
 
   const localRepositoryPaths = yield* cloneRepositories(repositories);
 
-  yield* scanRepositories(localRepositoryPaths);
+  const repositoryNames = yield* scanRepositories(localRepositoryPaths);
+
+  yield* generateEntities(repositoryNames);
 });
