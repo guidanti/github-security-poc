@@ -2,7 +2,6 @@ import { useLogger } from "fetcher-lib/useLogger.ts";
 import { call, each } from "npm:effection@4.0.0-alpha.3";
 import { installDependencies } from "./repo-install.ts";
 import { ClonedPath } from "./repos-clone.ts";
-import { exists, mkdir } from "./fs.ts";
 import { x } from "./tinyexec.ts";
 import { existsObject, putObject } from "./s3.ts";
 
@@ -12,7 +11,6 @@ type ClonedPathWithCommit = ClonedPath & {
 
 export function* scanRepositories(localRepositoryPaths: ClonedPath[]) {
   const logger = yield* useLogger();
-  yield* ensureCacheDirExists();
   yield* checkTrivyExists();
 
   for (const [index, cloned] of localRepositoryPaths.entries()) {
@@ -142,14 +140,6 @@ function* scan(cloned: ClonedPathWithCommit) {
   }
 
   return output.join("\n");
-}
-
-function* ensureCacheDirExists() {
-  const resultsDirectory = `${Deno.cwd()}/.cache/sarif/`;
-  const resultsDirectoryExists = yield* exists(resultsDirectory);
-  if (!resultsDirectoryExists) {
-    yield* mkdir(resultsDirectory, { recursive: true });
-  }
 }
 
 function* checkTrivyExists() {
