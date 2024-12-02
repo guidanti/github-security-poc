@@ -3,7 +3,7 @@ import { call, each } from "npm:effection@4.0.0-alpha.3";
 import { installDependencies } from "./repo-install.ts";
 import { ClonedPath } from "./repos-clone.ts";
 import { exists, mkdir } from "./fs.ts";
-import {  x } from "./tinyexec.ts";
+import { x } from "./tinyexec.ts";
 import { existsObject, putObject } from "./s3.ts";
 
 type ClonedPathWithCommit = ClonedPath & {
@@ -32,14 +32,14 @@ export function* scanRepositories(localRepositoryPaths: ClonedPath[]) {
           Key: key,
           Bucket: 'security'
         })) {
-          logger.info(`${key} exists; Skipping.`)
+          logger.info(`${key} exists; Skipping.`);
         } else {
           try {
             logger.info(`[${i++}/${commits.length}] Scanning commit with SHA ${commit}`)
             logger.info(` Git Checkout ${commit}`)
             yield* checkout(commit, cloned.path);
             logger.info(` Installing dependencies`)
-            yield* installDependencies(cloned.path);
+            yield* installDependencies(cloned);
             logger.info(` Scanning with trivy`);
             const output = yield* scan({ ...cloned, commit });
             if (output.trim() === "") {

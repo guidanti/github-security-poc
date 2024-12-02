@@ -1,30 +1,43 @@
+import { type Operation, call } from "npm:effection@4.0.0-alpha.3";
 import { useLogger } from "fetcher-lib/useLogger.ts";
 import semver from "npm:semver@7.6.3";
-import { exists } from "./fs.ts";
+import { whatPM as _whatPM, type WhatPMResult } from "npm:what-pm@3.3.1";
 import { x } from "./tinyexec.ts";
+import { type ClonedPath } from "./repos-clone.ts";
 
-export function* installDependencies(path: URL) {
+export function* installDependencies(cloned: ClonedPath) {
   const logger = yield* useLogger();
+
+  const pm = yield* whatPM(cloned.path.pathname);
   
-  const packageJson = new URL('package.json', `${path}/`);
-  if (yield* exists(packageJson)) {
-    const lockfile = new URL('yarn.lock', `${path}/`);
+  if (pm) {
+    logger.info(
+      ` Detected a package using ${pm.name}@${pm.version} ${pm.isWorkspace ? "with" : "without"} a workspace.`
+    );
+  } else {
+    logger.info(` package.json not found in ${cloned.nameWithOwner}; skipping.`);
+    return;
+  }
 
-    if (yield* exists(lockfile)) {
-      const yarnVersion = yield* x("yarn", ["--version"], {
-        nodeOptions: {
-          cwd: path.pathname,
-        }
-      });
-      const { stdout: version } = yield* yarnVersion;
-      const { major } = semver.parse(version);
+  switch (pm?.name) {
+    case "yarn": {
+      let version: number;
+      if (pm.version === "*") {
+        const yarnVersion = yield* yield* x("yarn", ["--version"], {
+          nodeOptions: {
+            cwd: cloned.path.pathname,
+          }
+        });
+        version = semver.parse(yarnVersion.stdout).major;
+      } else {
+        version = semver.parse(pm.version).major;
+      }
       
-      const args = major > 1 ? ["--immutable"] : ["--frozen-lockfile", "--ignore-engines"];
+      const args = version > 1 ? ["--immutable"] : ["--frozen-lockfile", "--ignore-engines"];
 
-      logger.info(`Using Yarn ${major}`);
       const install = yield* yield* x("yarn", args, {
         nodeOptions: {
-          cwd: path.pathname,
+          cwd: cloned.path.pathname,
         }
       });
 
@@ -32,23 +45,26 @@ export function* installDependencies(path: URL) {
         logger.log(install.stdout);
         logger.error(install.stderr)
       }
-
       return;
     }
-
-    const install = yield* yield* x("npm", ["install"], {
-      nodeOptions: {
-        cwd: path.pathname,
+    case "npm": {
+      const install = yield* yield* x("npm", ["install"], {
+        nodeOptions: {
+          cwd: cloned.path.pathname,
+        }
+      });
+      
+      if (install.exitCode !== 0) {
+        logger.log(install.stdout);
+        logger.error(install.stderr);
       }
-    });
-    logger.info(`Using NPM`);
-    
-    if (install.exitCode !== 0) {
-      logger.log(install.stdout);
-      logger.error(install.stderr);
+      return;
     }
-
-  } else {
-    logger.info(`Skipping ${path} because there is no root package.json`);
+    default:
+      throw new Error(`installDependencies does not support ${pm.name}`);
   }
+}
+
+function* whatPM(pkgPath: string): Operation<WhatPMResult | null> {
+  return yield* call(() => _whatPM(pkgPath));
 }
