@@ -19,9 +19,13 @@ export function* cloneRepositories(data: SearchRepositoriesQuery): Operation<Clo
     const repositories = data?.search?.nodes;
     for (const repository of repositories) {
       if (repository?.__typename === "Repository") {
-        const defaultBranch = repository.defaultBranchRef?.__typename === "Ref" ? repository.defaultBranchRef.name : "main";
+        const defaultBranch = repository?.defaultBranchRef?.name;
         const clonePath = new URL(`./repositories/${repository.nameWithOwner}`, cache.location);
         
+        if (!defaultBranch) {
+          throw new Error(`there is no defaultBranchRef for ${repository.name}`);
+        }
+
         let cmd: Operation<TinyProcess> | undefined;
         if (yield* exists(clonePath)) {
           if (yield* exists(new URL('./.git', `${clonePath}/`))) {
