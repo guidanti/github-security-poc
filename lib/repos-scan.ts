@@ -4,7 +4,7 @@ import { installDependencies } from "./repo-install.ts";
 import { ClonedPath } from "./repos-clone.ts";
 import { exists, mkdir } from "./fs.ts";
 import {  x } from "./tinyexec.ts";
-import { putObject } from "./s3.ts";
+import { existsObject, putObject } from "./s3.ts";
 
 type ClonedPathWithCommit = ClonedPath & {
   commit: string;
@@ -27,24 +27,32 @@ export function* scanRepositories(localRepositoryPaths: ClonedPath[]) {
 
       let i = 1;
       for (const commit of commits) {
-        try {
-          logger.info(`[${i++}/${commits.length}] Scanning commit with SHA ${commit}`)
-          logger.info(` Git Checkout ${commit}`)
-          yield* checkout(commit, cloned.path);
-          logger.info(` Installing dependencies`)
-          yield* installDependencies(cloned.path);
-          logger.info(` Scanning with trivy`);
-          const output = yield* scan({ ...cloned, commit });
-          if (output.trim() === "") {
-            logger.info(` Scanner output is empty; Skipping S3 Upload`);
-          } else {
-            logger.info(` Uploading to S3`);
-            yield* uploadToS3({ ...cloned, commit }, output);
+        const key = getKey({ ...cloned, commit });
+        if (yield* existsObject({
+          Key: key,
+          Bucket: 'security'
+        })) {
+          logger.info(`${key} exists; Skipping.`)
+        } else {
+          try {
+            logger.info(`[${i++}/${commits.length}] Scanning commit with SHA ${commit}`)
+            logger.info(` Git Checkout ${commit}`)
+            yield* checkout(commit, cloned.path);
+            logger.info(` Installing dependencies`)
+            yield* installDependencies(cloned.path);
+            logger.info(` Scanning with trivy`);
+            const output = yield* scan({ ...cloned, commit });
+            if (output.trim() === "") {
+              logger.info(` Scanner output is empty; Skipping S3 Upload`);
+            } else {
+              logger.info(` Uploading to S3`);
+              yield* uploadToS3({ ...cloned, commit }, output);
+            }
+            logger.info(` Successfully scanned ${commit}`)
+          } catch (e) {
+            logger.info(` Failed to complete ${commit}`);
+            logger.error(e);
           }
-          logger.info(` Successfully scanned ${commit}`)
-        } catch (e) {
-          logger.info(` Failed to complete ${commit}`);
-          logger.error(e);
         }
       }
     } catch (e) {
@@ -162,11 +170,11 @@ export function* uploadToS3(cloned: ClonedPathWithCommit, output: string) {
   
   yield* putObject({
     Body: output,
-    Key: `${cloned.nameWithOwner}/${cloned.commit}/trivy.json`,
+    Key: getKey(cloned),
     Bucket: `security`,
   });
+}
 
-  logger.info(
-    `Successfully uploaded ${cloned.nameWithOwner}/${cloned.commit} to bucket`,
-  );
+export function getKey(cloned: ClonedPathWithCommit) {
+  return `${cloned.nameWithOwner}/${cloned.commit}/trivy.json`
 }

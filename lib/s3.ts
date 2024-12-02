@@ -1,9 +1,13 @@
 import {
+HeadObjectCommand,
+HeadObjectCommandInput,
+  HeadObjectCommandOutput,
   PutObjectCommand,
   type PutObjectCommandInput,
   type PutObjectCommandOutput,
   S3Client,
   type S3ClientConfig,
+  NotFound
 } from "npm:@aws-sdk/client-s3@3.701.0";
 import {
   call,
@@ -44,4 +48,19 @@ export function* putObject(
   const s3 = yield* useS3Client();
 
   return yield* call(() => s3.send(new PutObjectCommand(input)));
+}
+
+export function* existsObject(input: HeadObjectCommandInput): Operation<boolean> {
+  const s3 = yield* useS3Client();
+
+  try {
+    yield* call(() => s3.send(new HeadObjectCommand(input)));
+    return true;
+  } catch (e) {
+    if (e instanceof NotFound) {
+      return false;
+    } else {
+      throw e;
+    }
+  }
 }
