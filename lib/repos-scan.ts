@@ -22,6 +22,7 @@ export function* scanRepositories(localRepositoryPaths: ClonedPath[]) {
       }/${localRepositoryPaths.length}] Running trivy scan for ${cloned.nameWithOwner}`,
     );
     try {
+      yield* checkout(cloned.branch, cloned.path);
       logger.info('Getting top 5 commits');
       const commits = yield* getCommits(cloned, 5);
 
