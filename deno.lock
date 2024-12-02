@@ -9,11 +9,13 @@
     "jsr:@std/dotenv@*": "0.225.2",
     "jsr:@std/encoding@1": "1.0.5",
     "jsr:@std/fs@1.0.4": "1.0.4",
+    "jsr:@std/fs@1.0.6": "1.0.6",
     "jsr:@std/internal@^1.0.2": "1.0.5",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/path@1.0.6": "1.0.6",
     "jsr:@std/path@1.0.8": "1.0.8",
     "jsr:@std/path@^1.0.6": "1.0.8",
+    "jsr:@std/path@^1.0.8": "1.0.8",
     "jsr:@takker/md5@0.1.0": "0.1.0",
     "npm:@aws-sdk/client-s3@3.701.0": "3.701.0_@aws-sdk+client-sts@3.699.0__@aws-sdk+client-sso-oidc@3.699.0___@aws-sdk+client-sts@3.699.0_@aws-sdk+client-sso-oidc@3.699.0__@aws-sdk+client-sts@3.699.0___@aws-sdk+client-sso-oidc@3.699.0____@aws-sdk+client-sts@3.699.0__@aws-sdk+client-sts@3.699.0___@aws-sdk+client-sso-oidc@3.699.0____@aws-sdk+client-sts@3.699.0_____@aws-sdk+client-sso-oidc@3.699.0___@aws-sdk+client-sso-oidc@3.699.0",
     "npm:@graphql-codegen/cli@5.0.3": "5.0.3_graphql@16.8.2_@types+node@22.5.4",
@@ -78,6 +80,12 @@
       "integrity": "2907d32d8d1d9e540588fd5fe0ec21ee638134bd51df327ad4e443aaef07123c",
       "dependencies": [
         "jsr:@std/path@^1.0.6"
+      ]
+    },
+    "@std/fs@1.0.6": {
+      "integrity": "42b56e1e41b75583a21d5a37f6a6a27de9f510bcd36c0c85791d685ca0b85fa2",
+      "dependencies": [
+        "jsr:@std/path@^1.0.8"
       ]
     },
     "@std/internal@1.0.5": {
