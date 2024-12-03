@@ -21,6 +21,19 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+function colorByLevel(level: string) {
+  switch (level) {
+    case 'error':
+      return 'red';
+    case 'warning':
+      return 'orange';
+    case 'note':
+      return 'yellow';
+    default:
+      return 'white';
+  }
+}
+
 export interface SarifResult {
   level: string;
   locations: {
@@ -47,6 +60,7 @@ export const SecurityReportTable = ({
           <TableRow>
             <TableCell />
             <TableCell align="left">ID</TableCell>
+            <TableCell align="left">Level</TableCell>
             <TableCell align="left">Location</TableCell>
           </TableRow>
         </TableHead>
@@ -72,6 +86,7 @@ const Row = ({ result }: { result: SarifResult }) => {
           </IconButton>
         </TableCell>
         <TableCell align="left">{result.ruleId}</TableCell>
+        <TableCell align="left" style={{ color: colorByLevel(result.level) }}>{result.level}</TableCell>
         <TableCell align="left">{result.locations[0].message.text}</TableCell>
       </TableRow>
       <TableRow>
