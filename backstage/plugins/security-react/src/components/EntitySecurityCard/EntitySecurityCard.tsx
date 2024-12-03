@@ -51,6 +51,7 @@ export const EntitySecurityCard = () => {
 
   const [commits, setCommits] = useState([] as string[]);
   const [commit, setCommit] = useState('');
+  const [allShas, setAllShas] = useState([] as string[]);
   const [sarif, setSarif] = useState(
     {} as {
       github_sha: string;
@@ -68,6 +69,27 @@ export const EntitySecurityCard = () => {
     ) {
       const [org, repo] =
         entity.metadata.annotations['github.com/project-slug'].split('/');
+
+      const proxyUrl = await discovery.getBaseUrl('proxy');
+      const shas = await fetch(`${proxyUrl}/cube`, {
+        method: 'POST',
+        body: JSON.stringify({
+          query: SHA_QUERY,
+          variables: {
+            owner: org,
+            repository: repo,
+          },
+        }),
+      });
+      const {
+        data: { cube },
+      } = await shas.json();
+      setAllShas(
+        cube.map(
+          (sha: { sarifs: { github_sha: string } }) => sha.sarifs.github_sha,
+        ),
+      );
+
       const { token } = await scm.getCredentials({
         url: `https://github.com/${org}/${repo}`,
         additionalScope: {
@@ -91,10 +113,10 @@ export const EntitySecurityCard = () => {
         {
           owner: org,
           repo,
-          per_page: 10,
+          per_page: 7,
         },
       );
-      setCommits(repoCommits.data.map(commit => commit.sha.substring(0, 9)));
+      setCommits(repoCommits.data.map(commit => commit.sha.substring(0, 7)));
     }
   }, []);
 
@@ -121,9 +143,14 @@ export const EntitySecurityCard = () => {
         }),
       });
       const {
-        data: { cube: [{ sarifs: {github_sha, tool_name, results } }] }
+        data: {
+          cube: [
+            {
+              sarifs: { github_sha, tool_name, results },
+            },
+          ],
+        },
       } = await sarifs.json();
-      console.log(results)
       setSarif({
         github_sha,
         tool_name,
@@ -151,18 +178,31 @@ export const EntitySecurityCard = () => {
             label="Commits"
           >
             {commits.map((commit, index) => {
-              return <MenuItem value={commit}>{commit}{index === 0 && " (latest)"}</MenuItem>;
+              return (
+                <MenuItem
+                  key={commit}
+                  value={commit}
+                  disabled={!allShas.includes(commit)}
+                >
+                  {commit}
+                  {index === 0 && ' (latest)'}
+                </MenuItem>
+              );
             })}
           </Select>
         </FormControl>
-        {commit && sarif.results ? <SecurityReportTable results={sarif.results} /> : ''}
+        {commit && sarif.results ? (
+          <SecurityReportTable results={sarif.results} />
+        ) : (
+          ''
+        )}
       </CardContent>
     </Card>
   );
 };
 
 const SARIF_QUERY = `
-  query CubeQuery($owner: String!, $repository: String!, $commit: String!) {
+  query SarifQuery($owner: String!, $repository: String!, $commit: String!) {
     cube(where: {
       sarifs: {
         github_owner: { equals: $owner },
@@ -174,6 +214,19 @@ const SARIF_QUERY = `
         github_sha
         tool_name
         results
+      }
+    }
+  }
+`;
+
+const SHA_QUERY = `
+  query ShaQuery($owner: String!, $repository: String!) {
+    cube(where: { sarifs: {
+      github_owner: { equals: $owner },
+      github_repository: { equals: $repository },
+    }}) {
+      sarifs {
+        github_sha
       }
     }
   }

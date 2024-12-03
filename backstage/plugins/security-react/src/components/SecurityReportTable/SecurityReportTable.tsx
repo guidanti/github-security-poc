@@ -63,7 +63,6 @@ export const SecurityReportTable = ({
 const Row = ({ result }: { result: SarifResult }) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
-  console.log(result.message.text)
   return (
     <>
       <TableRow>
