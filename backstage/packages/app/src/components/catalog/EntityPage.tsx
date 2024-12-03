@@ -126,12 +126,12 @@ const entityWarningContent = (
 );
 
 const overviewContent = (
-  <Grid container spacing={3} alignItems="stretch">
+  <Grid container spacing={3}>
     {entityWarningContent}
     <Grid item md={6}>
       <EntityAboutCard variant="gridItem" />
     </Grid>
-    <Grid item md={7}>
+    <Grid item md={8}>
       <EntitySecurityCard />
     </Grid>
   </Grid>

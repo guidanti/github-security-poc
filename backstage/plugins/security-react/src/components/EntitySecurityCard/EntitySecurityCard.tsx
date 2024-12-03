@@ -20,6 +20,8 @@ import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Divider from '@material-ui/core/Divider';
 
+import { SecurityReportTable, type SarifResult } from '../SecurityReportTable';
+
 const useStyles = makeStyles(theme => ({
   gridItemCard: {
     display: 'flex',
@@ -35,6 +37,7 @@ const useStyles = makeStyles(theme => ({
   },
   formControl: {
     width: theme.spacing(16),
+    marginBottom: theme.spacing(2),
   },
 }));
 
@@ -52,7 +55,7 @@ export const EntitySecurityCard = () => {
     {} as {
       github_sha: string;
       tool_name: string;
-      results: string;
+      results: SarifResult[];
     },
   );
 
@@ -63,7 +66,8 @@ export const EntitySecurityCard = () => {
       entity.metadata.annotations &&
       entity.metadata.annotations['github.com/project-slug']
     ) {
-      const [org, repo] = entity.metadata.annotations['github.com/project-slug'].split('/');
+      const [org, repo] =
+        entity.metadata.annotations['github.com/project-slug'].split('/');
       const { token } = await scm.getCredentials({
         url: `https://github.com/${org}/${repo}`,
         additionalScope: {
@@ -102,7 +106,8 @@ export const EntitySecurityCard = () => {
       entity.metadata.annotations['github.com/project-slug'] &&
       commit
     ) {
-      const [org, repo] = entity.metadata.annotations['github.com/project-slug'].split('/');
+      const [org, repo] =
+        entity.metadata.annotations['github.com/project-slug'].split('/');
       const proxyUrl = await discovery.getBaseUrl('proxy');
       const sarifs = await fetch(`${proxyUrl}/cube`, {
         method: 'POST',
@@ -115,8 +120,15 @@ export const EntitySecurityCard = () => {
           },
         }),
       });
-      const results = await sarifs.json();
-      setSarif(results.data.cube[0].sarifs);
+      const {
+        data: { cube: [{ sarifs: {github_sha, tool_name, results } }] }
+      } = await sarifs.json();
+      console.log(results)
+      setSarif({
+        github_sha,
+        tool_name,
+        results: JSON.parse(results),
+      });
     }
   }, [commit]);
 
@@ -143,7 +155,7 @@ export const EntitySecurityCard = () => {
             })}
           </Select>
         </FormControl>
-        {commit ? JSON.stringify(sarif, null, 2) : ''}
+        {commit && sarif.results ? <SecurityReportTable results={sarif.results} /> : ''}
       </CardContent>
     </Card>
   );
