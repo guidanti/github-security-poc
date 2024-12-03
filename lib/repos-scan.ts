@@ -77,8 +77,7 @@ function* getCommits(cloned: ClonedPath, count: number) {
   });
 
   return gitLog.stdout.split("\n")
-    .filter((commit) => commit.trim())
-    .map(commit => commit.substring(0, 7));
+    .filter((commit) => commit.trim());
 }
 
 function* checkout(commit: string, path: URL) {

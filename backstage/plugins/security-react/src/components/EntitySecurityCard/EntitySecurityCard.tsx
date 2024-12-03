@@ -116,7 +116,7 @@ export const EntitySecurityCard = () => {
           per_page: 7,
         },
       );
-      setCommits(repoCommits.data.map(commit => commit.sha.substring(0, 7)));
+      setCommits(repoCommits.data.map(commit => commit.sha));
     }
   }, []);
 
@@ -184,7 +184,7 @@ export const EntitySecurityCard = () => {
                   value={commit}
                   disabled={!allShas.includes(commit)}
                 >
-                  {commit}
+                  {commit.substring(0,7)}
                   {index === 0 && ' (latest)'}
                 </MenuItem>
               );
