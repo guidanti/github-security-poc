@@ -1,30 +1,16 @@
 // source https://github.com/duckdb/duckdb/discussions/3578#discussioncomment-10791871
 cube(`sarifs`, {
   sql: `
-    WITH items AS (
-      SELECT 
-        value AS item, 
-        filename, 
-        regexp_extract(filename, '^s3:\/\/[^\/]+\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)$', ['owner', 'name', 'sha']) as id 
-      FROM 
-        read_json_auto(
-          's3://security/*/*/*/*.json', 
-          hive_partitioning=true, 
-          filename=true,
-          maximum_depth=4
-        ) as files, 
-        json_each(files->'$.runs[*]')
-    )
     SELECT
-      item->'$.results' as results,
-      item->'$.notifications' as notifications,
-      json_value(item, '$.tool.driver.name') as tool_name,
-      json_value(item, '$.tool.driver.organization') as tool_organization,
       filename,
-      id.owner as github_owner,
-      id.name as github_repository,
-      id.sha as github_sha
-    FROM items
+      github_sha,
+      github_repository,
+      github_owner,
+      tool_organization,
+      tool_name,
+      notifications,
+      results
+    FROM sarif_results
   `,
   data_source: `default`,
 
