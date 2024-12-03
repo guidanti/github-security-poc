@@ -20,7 +20,7 @@ import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Divider from '@material-ui/core/Divider';
 
-import { SecurityReportTable, type SarifResult } from '../SecurityReportTable';
+import { SecurityReportTable } from '../SecurityReportTable';
 
 const useStyles = makeStyles(theme => ({
   gridItemCard: {
@@ -49,26 +49,17 @@ export const EntitySecurityCard = () => {
   const { entity } = useEntity();
   const classes = useStyles();
 
-  const [commits, setCommits] = useState([] as string[]);
   const [commit, setCommit] = useState('');
-  const [allShas, setAllShas] = useState([] as string[]);
-  const [sarif, setSarif] = useState(
-    {} as {
-      github_sha: string;
-      tool_name: string;
-      results: SarifResult[];
-    },
-  );
 
-  const { loading, error } = useAsync(async () => {
-    if (
-      entity &&
-      entity.metadata &&
-      entity.metadata.annotations &&
-      entity.metadata.annotations['github.com/project-slug']
-    ) {
-      const [org, repo] =
-        entity.metadata.annotations['github.com/project-slug'].split('/');
+  const ownerWithName =
+    entity &&
+    entity.metadata &&
+    entity.metadata.annotations &&
+    entity.metadata.annotations['github.com/project-slug'];
+
+  const allShas = useAsync(async () => {
+    if (ownerWithName) {
+      const [org, repo] = ownerWithName.split('/');
 
       const proxyUrl = await discovery.getBaseUrl('proxy');
       const shas = await fetch(`${proxyUrl}/cube`, {
@@ -83,12 +74,17 @@ export const EntitySecurityCard = () => {
       });
       const {
         data: { cube },
-      } = await shas.json();
-      setAllShas(
-        cube.map(
-          (sha: { sarifs: { github_sha: string } }) => sha.sarifs.github_sha,
-        ),
-      );
+      } = (await shas.json()) as {
+        data: { cube: { sarifs: { github_sha: string } }[] };
+      };
+      return cube.map(sha => sha.sarifs.github_sha);
+    }
+    return [];
+  }, [ownerWithName]);
+
+  const repoCommits = useAsync(async () => {
+    if (ownerWithName) {
+      const [org, repo] = ownerWithName.split('/');
 
       const { token } = await scm.getCredentials({
         url: `https://github.com/${org}/${repo}`,
@@ -116,20 +112,14 @@ export const EntitySecurityCard = () => {
           per_page: 7,
         },
       );
-      setCommits(repoCommits.data.map(commit => commit.sha));
+      return repoCommits.data.map(commit => commit.sha);
     }
-  }, []);
+    return [];
+  }, [ownerWithName]);
 
-  const { loading: _loadingSarif, error: _errorSarif } = useAsync(async () => {
-    if (
-      entity &&
-      entity.metadata &&
-      entity.metadata.annotations &&
-      entity.metadata.annotations['github.com/project-slug'] &&
-      commit
-    ) {
-      const [org, repo] =
-        entity.metadata.annotations['github.com/project-slug'].split('/');
+  const sarifs = useAsync(async () => {
+    if (ownerWithName && commit) {
+      const [org, repo] = ownerWithName.split('/');
       const proxyUrl = await discovery.getBaseUrl('proxy');
       const sarifs = await fetch(`${proxyUrl}/cube`, {
         method: 'POST',
@@ -151,18 +141,22 @@ export const EntitySecurityCard = () => {
           ],
         },
       } = await sarifs.json();
-      setSarif({
+      return {
         github_sha,
         tool_name,
         results: JSON.parse(results),
-      });
+      };
     }
-  }, [commit]);
+    return;
+  }, [commit, ownerWithName]);
 
-  if (loading) {
-    return <Progress />;
-  } else if (error) {
+  const error = allShas.error || repoCommits.error;
+  if (error) {
     return <ResponseErrorPanel error={error} />;
+  }
+
+  if (allShas.loading || repoCommits.loading) {
+    return <Progress />;
   }
 
   return (
@@ -177,25 +171,23 @@ export const EntitySecurityCard = () => {
             onChange={e => setCommit(`${e.target.value}`)}
             label="Commits"
           >
-            {commits.map((commit, index) => {
+            {(repoCommits.value ?? []).map((commit, index) => {
               return (
                 <MenuItem
                   key={commit}
                   value={commit}
-                  disabled={!allShas.includes(commit)}
+                  disabled={!(allShas.value ?? []).includes(commit)}
                 >
-                  {commit.substring(0,7)}
+                  {commit.substring(0, 7)}
                   {index === 0 && ' (latest)'}
                 </MenuItem>
               );
             })}
           </Select>
         </FormControl>
-        {commit && sarif.results ? (
-          <SecurityReportTable results={sarif.results} />
-        ) : (
-          ''
-        )}
+        {commit && sarifs.value ? (
+          <SecurityReportTable results={sarifs.value.results} />
+        ) : null}
       </CardContent>
     </Card>
   );
