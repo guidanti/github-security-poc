@@ -38,8 +38,8 @@ module.exports = {
           SELECT
               item->'$.results' AS results,
               item->'$.notifications' AS notifications,
-              json_value(item, '$.tool.driver.name') AS tool_name,
-              json_value(item, '$.tool.driver.organization') AS tool_organization,
+              json_extract_string(item, '$.tool.driver.name') AS tool_name,
+              json_extract_string(item, '$.tool.driver.organization') AS tool_organization,
               filename,
               id.owner AS github_owner,
               id.name AS github_repository,
