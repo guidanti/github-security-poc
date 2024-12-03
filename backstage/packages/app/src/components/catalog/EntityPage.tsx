@@ -131,7 +131,7 @@ const overviewContent = (
     <Grid item md={6}>
       <EntityAboutCard variant="gridItem" />
     </Grid>
-    <Grid>
+    <Grid item md={7}>
       <EntitySecurityCard />
     </Grid>
   </Grid>

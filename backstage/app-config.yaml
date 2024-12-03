@@ -50,6 +50,12 @@ proxy:
   #   '/test':
   #     target: 'https://example.com'
   #     changeOrigin: true
+  endpoints:
+    '/cube':
+      target: 'http://localhost:4000/cubejs-api/graphql'
+      credentials: dangerously-allow-unauthenticated
+      headers:
+        Content-Type: 'application/json'
 
 # Reference documentation http://backstage.io/docs/features/techdocs/configuration
 # Note: After experimenting with basic setup, use CI/CD to generate docs

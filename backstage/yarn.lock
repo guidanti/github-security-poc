@@ -14209,6 +14209,7 @@ __metadata:
     "@octokit/rest": "npm:^21.0.2"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
+    cross-fetch: "npm:^4.0.0"
     react: "npm:^16.13.1 || ^17.0.0 || ^18.0.0"
     react-use: "npm:^17.2.4"
   peerDependencies:
