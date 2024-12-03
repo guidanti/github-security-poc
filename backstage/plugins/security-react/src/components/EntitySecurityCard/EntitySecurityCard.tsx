@@ -36,7 +36,7 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column',
   },
   formControl: {
-    width: theme.spacing(16),
+    width: theme.spacing(23),
     marginBottom: theme.spacing(2),
   },
 }));
@@ -91,7 +91,7 @@ export const EntitySecurityCard = () => {
         {
           owner: org,
           repo,
-          per_page: 5,
+          per_page: 10,
         },
       );
       setCommits(repoCommits.data.map(commit => commit.sha.substring(0, 9)));
@@ -150,8 +150,8 @@ export const EntitySecurityCard = () => {
             onChange={e => setCommit(`${e.target.value}`)}
             label="Commits"
           >
-            {commits.map(commit => {
-              return <MenuItem value={commit}>{commit}</MenuItem>;
+            {commits.map((commit, index) => {
+              return <MenuItem value={commit}>{commit}{index === 0 && " (latest)"}</MenuItem>;
             })}
           </Select>
         </FormControl>
