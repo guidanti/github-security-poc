@@ -67,7 +67,7 @@ function* getCommits(cloned: ClonedPath, count: number) {
   const gitLog = yield* yield* x("git", [
     "--no-pager",
     "log",
-    "--pretty=format:%h",
+    "--pretty=format:%H",
     "-n",
     `${count}`,
   ], {
@@ -76,7 +76,9 @@ function* getCommits(cloned: ClonedPath, count: number) {
     },
   });
 
-  return gitLog.stdout.split("\n").filter((commit) => commit.trim())
+  return gitLog.stdout.split("\n")
+    .filter((commit) => commit.trim())
+    .map(commit => commit.substring(0, 7));
 }
 
 function* checkout(commit: string, path: URL) {
