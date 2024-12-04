@@ -16,7 +16,16 @@ export function* cloneRepositories(data: SearchRepositoriesQuery): Operation<Clo
   const cache = yield* useCache();
 
   if (data?.search?.nodes?.length) {
-    const repositories = data?.search?.nodes;
+    const repositories = [ ...data?.search?.nodes, {
+      __typename: "Repository",
+      name: "an-example-security-repo",
+      nameWithOwner: "guidanti/an-example-security-repo",
+      url: "https://github.com/guidanti/an-example-security-repo",
+      defaultBranchRef: {
+        __typename: "Ref",
+        name: "main",
+      }
+    }];
     for (const repository of repositories) {
       if (repository?.__typename === "Repository") {
         const defaultBranch = repository?.defaultBranchRef?.name;
