@@ -137,6 +137,7 @@ module.exports = {
             tool_full_name,
             filename, 
             rule.ruleId as rule_id, 
+            rule.ruleIndex as rule_index,
             rule.level as rule_level, 
             rule.message.text as rule_message
           FROM result;
