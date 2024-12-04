@@ -3,7 +3,7 @@ const DuckDBDriver = require('@cubejs-backend/duckdb-driver');
 module.exports = {
   driverFactory: () => {
     return new DuckDBDriver({
-      initSql: `
+      initSql: /* SQL */`
         CREATE OR REPLACE MACRO json_each(val) AS
         TABLE (
           SELECT CASE
@@ -45,6 +45,101 @@ module.exports = {
               id.name AS github_repository,
               id.sha AS github_sha
           FROM items;
+        
+        CREATE TEMPORARY TABLE sarif_results_items AS
+          WITH 
+            items AS (
+              SELECT
+                filename,
+                unnest(runs) as runs,
+                regexp_extract(
+                    filename, 
+                    '^s3://[^/]+/([^/]+)/([^/]+)/([^/]+)/([^/]+)$', 
+                    ['owner', 'name', 'sha']
+                ) AS id
+              FROM read_json_auto(
+                's3://security/*/*/*/*.json',
+                hive_partitioning=true,
+                filename=true,
+                columns={
+                  runs: 'STRUCT(
+                    tool STRUCT(
+                      driver STRUCT(
+                        fullName VARCHAR, 
+                        informationUri VARCHAR, 
+                        "name" VARCHAR, 
+                        rules STRUCT(
+                          id VARCHAR, 
+                          "name" VARCHAR, 
+                          shortDescription STRUCT("text" VARCHAR), 
+                          fullDescription STRUCT("text" VARCHAR), 
+                          defaultConfiguration STRUCT("level" VARCHAR), 
+                          helpUri VARCHAR, 
+                          help STRUCT(
+                            "text" VARCHAR, 
+                            markdown VARCHAR
+                          ), 
+                          properties STRUCT(
+                            "precision" VARCHAR, 
+                            "security-severity" VARCHAR, 
+                            tags VARCHAR[]
+                          )
+                        )[], 
+                      "version" VARCHAR)
+                    ), 
+                    results STRUCT(
+                      ruleId VARCHAR, 
+                      ruleIndex BIGINT, 
+                      "level" VARCHAR, 
+                      message STRUCT("text" VARCHAR), 
+                      locations STRUCT(
+                        physicalLocation STRUCT(
+                          artifactLocation STRUCT(
+                            uri VARCHAR, 
+                            uriBaseId VARCHAR
+                          ), 
+                          region STRUCT(
+                            startLine BIGINT, 
+                            startColumn BIGINT, 
+                            endLine BIGINT, 
+                            endColumn BIGINT
+                          )
+                        ), 
+                        message STRUCT(
+                          "text" VARCHAR
+                        )
+                      )[]
+                    )[], 
+                    columnKind VARCHAR, 
+                    originalUriBaseIds STRUCT(
+                      ROOTPATH STRUCT(uri VARCHAR)
+                    )
+                  )[]'
+                }
+              )
+            ),
+            result AS (
+              SELECT
+                id.owner AS github_owner,
+                id.name AS github_repository,
+                id.sha AS github_sha,
+                filename,
+                unnest(runs.results) as rule, 
+                runs.tool.driver.name as tool_name,
+                runs.tool.driver.fullName as tool_full_name
+              FROM items
+            )
+          SELECT
+            github_owner,
+            github_repository,
+            github_sha,
+            tool_name,
+            tool_full_name,
+            filename, 
+            rule.ruleId as rule_id, 
+            rule.level as rule_level, 
+            rule.message.text as rule_message
+          FROM result;
       `
     })
   }
