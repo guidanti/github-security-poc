@@ -1,27 +1,31 @@
 services:
   cube:
-    image: cubejs/cube:latest
+    image: tarasm/cube:duckdb113
     ports:
       - 4000:4000
       - 15432:15432
     environment:
+      - DEBUG_LOG=true
       - CUBEJS_DEV_MODE=true
       - CUBEJS_DB_TYPE=duckdb
-      - CUBEJS_DB_DUCKDB_DATABASE_PATH=securitydb.duckdb
+      - CUBEJS_DB_DUCKDB_DATABASE_PATH=security.duckdb
+      - CUBEJS_DB_DUCKDB_S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - CUBEJS_DB_DUCKDB_S3_SECRET_ACCESS_KEY=${S3_SECRET_KEY}
+      - CUBEJS_DB_DUCKDB_S3_ENDPOINT=host.docker.internal:9000
+      - CUBEJS_DB_DUCKDB_S3_URL_STYLE=path
+      - CUBEJS_DB_DUCKDB_S3_REGION=us-east-1
+      - CUBEJS_DB_DUCKDB_S3_USE_SSL=false
     volumes:
       - .:/cube/conf
-  # only used for generating the schema
-  postgres:
-    image: "postgres:14"
-    container_name: postgres
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - data:/var/lib/postgresql/data
-
-volumes:
-  data:
+  minio:
+      image: minio/minio
+      container_name: minio
+      ports:
+        - "9000:9000"
+        - "9001:9001" # Console UI
+      environment:
+        MINIO_ROOT_USER: minioadmin
+        MINIO_ROOT_PASSWORD: minioadmin
+      command: server /data --console-address ":9001"
+      volumes:
+        - ./minio-data:/data

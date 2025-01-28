@@ -1,2 +1,11 @@
 node_modules
 .cubestore
+.cache
+*.log
+.DS_Store
+minio-data/.minio.sys/buckets
+minio-data/.minio.sys/tmp
+minio-data/*
+!minio-data/.minio.sys
+security.duckdb
+security.duckdb.wal

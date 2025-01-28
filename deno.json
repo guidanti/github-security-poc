@@ -1,12 +1,18 @@
 {
   "tasks": {
     "dev": "deno run --watch main.ts",
-    "generate:types": "deno run --allow-read --allow-write --allow-env --allow-run --allow-sys tasks/generate-types.ts"
+    "generate:types": "deno run --allow-read --allow-write --allow-env --allow-run --allow-sys tasks/generate-types.ts",
+    "generate:graphql": "deno run --allow-read --allow-write --allow-env --allow-sys tasks/generate-graphql.ts",
+    "repo": "deno run -A lib/build-org.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
     "duckdb": "npm:duckdb-async@^1.1.1",
-    "zod": "npm:zod@3.23.8"
+    "zod": "npm:zod@3.23.8",
+    "fetcher-lib/": "https://raw.githubusercontent.com/guidanti/github-discussions-fetcher/refs/heads/main/packages/github-discussions-fetcher/lib/",
+    "@octokit/graphql-schema": "npm:@octokit/graphql-schema@15.25.0",
+    "@graphql-typed-document-node/core": "npm:@graphql-typed-document-node/core@3.2.0"
   },
-  "nodeModulesDir": "auto"
+  "nodeModulesDir": "auto",
+  "unstable": ["sloppy-imports"]
 }
